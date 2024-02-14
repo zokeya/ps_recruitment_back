@@ -10,10 +10,15 @@ router = APIRouter(
 
 
 @router.post('signup', response_model=schemas.Token)
-async def sign_up(user_credentials: OAuth2PasswordRequestForm = Depends(), db: Session = database.get_db()):
-    user = utils.create_new_user()
+async def sign_up(new_user: schemas.UserCreate, db: Session = database.get_db()):
+    existing_db_user = utils.get_user_by_email(db, email=new_user.email)
 
-    access_token = oauth2.create_access_token(data={"username" : user.email})
+    if existing_db_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+
+    user = utils.create_new_user(db=db, user=new_user)
+
+    access_token = oauth2.create_access_token(data={"username": user.email})
     return access_token
 
 

@@ -4,6 +4,7 @@ from typing import List
 from passlib.context import CryptContext
 import json
 
+from app import schemas
 from app.models import Item, User
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -63,6 +64,27 @@ def create_item(db: Session, name: str, description: str, price: float, tax: flo
 #     db.commit()
 #     db.refresh(db_item)
 #     return db_item
+
+def create_new_user(db: Session, user: schemas.UserCreate):
+    password_gen = generate_pwd_from_email(user.email)
+
+    hashed_password = hash(password_gen)
+    db_user = User(
+        name=user.name,
+        email=user.email,
+        password=hashed_password,
+        user_role_id=user.user_role_id
+    )
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+
+    # body = (f'Hello {db_user.name},\nYour details have been successfully created in the Job Card Portal.\n\nTo login, '
+    #         f'use the following credentials.\nUsername : {db_user.email}\nPassword : {password_gen}\n\nFor any '
+    #         f'inquiries, please consult the support desk.\n\nBest regards,\nThe Support Team')
+    # save_email_to_db("Password Change Notification", body, db_user.email)
+    return db_user
+
 
 def get_user_by_email(db: Session, email: str):
     return db.query(User).filter(User.email == email).first()

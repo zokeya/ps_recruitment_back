@@ -9,3 +9,9 @@ class TokenData(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
+
+
+class UserCreate(BaseModel):
+    email: str
+    name: str
+    user_role_id: int
