@@ -69,7 +69,7 @@ async def create_offer(offer: Offer, db: Session = Depends(get_db)):
 @app.get('/')
 def home(db: Session = Depends(get_db)):
     items = get_items(db)
-    return {"message": items}
+    return {"data": items}
 
 
 if __name__ == '__main__':
