@@ -82,22 +82,6 @@ def create_item(db: Session, name: str, description: str, price: float, tax: flo
 #     db.refresh(db_item)
 #     return db_item
 
-# def create_new_user(db: Session, user: schemas.UserCreate):
-#     password_gen = generate_pwd_from_email(user.email)
-#
-#     hashed_password = hash(password_gen)
-#     db_user = models.User(
-#         name=user.name,
-#         email=user.email,
-#         password=hashed_password,
-#         user_role_id=user.user_role_id
-#     )
-#     db.add(db_user)
-#     db.commit()
-#     db.refresh(db_user)
-#
-#     return db_user
-
 def create_user(db: Session, user: schemas.UserCreate):
 
     hashed_password = hash(user.password)
