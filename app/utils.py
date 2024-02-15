@@ -83,14 +83,13 @@ def create_item(db: Session, name: str, description: str, price: float, tax: flo
 #     return db_item
 
 def create_user(db: Session, user: schemas.UserCreate):
-
     hashed_password = hash(user.password)
     db_user = models.User(
         name=user.name,
         email=user.email,
         password=hashed_password,
         user_role_id=user.user_role_id
-        )
+    )
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
@@ -98,9 +97,9 @@ def create_user(db: Session, user: schemas.UserCreate):
     return db_user
 
 
-
 def get_user_by_email(db: Session, email: str):
     return db.query(models.User).filter(models.User.email == email).first()
+
 
 def get_user_by_reset_token(db: Session, reset_token: str):
     return db.query(models.User).filter(models.User.reset_token == reset_token).first()
