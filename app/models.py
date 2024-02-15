@@ -7,7 +7,7 @@ Base = declarative_base()
 class Item(Base):
     __tablename__ = "items"
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(255), index=True)
+    name = Column(String(255), index=True, unique=True)
     description = Column(Text, nullable=True)
     price = Column(Float, default=0.00)
     tax = Column(Float, default=0.00)
@@ -32,6 +32,7 @@ class User(Base):
     password = Column(String(255), nullable=False)
     user_role_id = Column(Integer, ForeignKey("user_roles.id"))
     is_active = Column(Boolean, default=True, nullable=False)
+    reset_token = Column(Text, nullable=True)
 
     # candidate = relationship("Candidate", back_populates="user")
     user_role = relationship("UserRole", back_populates="users")

@@ -1,11 +1,14 @@
+from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from typing import List
+from datetime import datetime, timedelta
 from passlib.context import CryptContext
+from jose import jwt
 import json
 
-from app import schemas
-from app.models import Item, User
+from app import schemas, models
+from app.config import settings
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -26,6 +29,20 @@ def generate_pwd_from_email(email: str):
     return generated_password
 
 
+def generate_reset_token(email: str) -> str:
+    to_encode = {"sub": email, "exp": datetime.utcnow() + timedelta(minutes=settings.access_token_expire_minutes)}
+    return jwt.encode(to_encode, settings.secret_key, algorithm=settings.algorithm)
+
+
+def save_reset_token(db: Session, user_id: int, reset_token: str):
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if user:
+        user.reset_token = reset_token
+        db.commit()
+    else:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+
 def run_sql_query(query: str, db: Session):
     try:
         result = db.execute(text(query))
@@ -42,7 +59,7 @@ def get_items(db: Session):
 
 
 def create_item(db: Session, name: str, description: str, price: float, tax: float, tags: List[str], image: dict):
-    db_item = Item(
+    db_item = models.Item(
         name=name,
         description=description,
         price=price,
@@ -65,26 +82,41 @@ def create_item(db: Session, name: str, description: str, price: float, tax: flo
 #     db.refresh(db_item)
 #     return db_item
 
-def create_new_user(db: Session, user: schemas.UserCreate):
-    password_gen = generate_pwd_from_email(user.email)
+# def create_new_user(db: Session, user: schemas.UserCreate):
+#     password_gen = generate_pwd_from_email(user.email)
+#
+#     hashed_password = hash(password_gen)
+#     db_user = models.User(
+#         name=user.name,
+#         email=user.email,
+#         password=hashed_password,
+#         user_role_id=user.user_role_id
+#     )
+#     db.add(db_user)
+#     db.commit()
+#     db.refresh(db_user)
+#
+#     return db_user
 
-    hashed_password = hash(password_gen)
-    db_user = User(
+def create_user(db: Session, user: schemas.UserCreate):
+
+    hashed_password = hash(user.password)
+    db_user = models.User(
         name=user.name,
         email=user.email,
         password=hashed_password,
         user_role_id=user.user_role_id
-    )
+        )
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
 
-    # body = (f'Hello {db_user.name},\nYour details have been successfully created in the Job Card Portal.\n\nTo login, '
-    #         f'use the following credentials.\nUsername : {db_user.email}\nPassword : {password_gen}\n\nFor any '
-    #         f'inquiries, please consult the support desk.\n\nBest regards,\nThe Support Team')
-    # save_email_to_db("Password Change Notification", body, db_user.email)
     return db_user
 
 
+
 def get_user_by_email(db: Session, email: str):
-    return db.query(User).filter(User.email == email).first()
+    return db.query(models.User).filter(models.User.email == email).first()
+
+def get_user_by_reset_token(db: Session, reset_token: str):
+    return db.query(models.User).filter(models.User.reset_token == reset_token).first()

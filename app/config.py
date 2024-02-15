@@ -15,6 +15,13 @@ class Settings(BaseSettings):
     algorithm: str
     access_token_expire_minutes: int = 1
 
+    smtp_server: str
+    smtp_port: int
+    sender_email: str
+    sender_password: str
+
+    server_url: str
+
     # database_url: str = os.getenv("DATABASE_URL")
     # database_name: str = os.getenv("DATABASE_NAME")
     # secret_key: str = os.getenv("SECRET_KEY")

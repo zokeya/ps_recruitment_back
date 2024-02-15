@@ -19,7 +19,7 @@ class TokenVerificationError(HTTPException):
         super().__init__(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=detail,
-            headers={"WWW-Authenticate" : "Bearer"}
+            headers={"WWW-Authenticate": "Bearer"}
         )
 
 
@@ -30,9 +30,9 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     else:
         expires = datetime.utcnow() + timedelta(minutes=1)
 
-    to_encode.update({"exp":expires})
+    to_encode.update({"exp": expires})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return  encoded_jwt
+    return encoded_jwt
 
 
 def verify_access_token(token: str, credentials_exception):
@@ -48,7 +48,8 @@ def verify_access_token(token: str, credentials_exception):
     except JWTError:
         raise credentials_exception
 
-async def get_current_user(token: Annotated[str: Depends(oauth2_scheme)], db: Session = Depends(database.get_db())):
+
+async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], db: Session = Depends(database.get_db())):
     credentials_exception = TokenVerificationError()
     token_data = verify_access_token(token, credentials_exception)
     user = db.query(models.User).filter(models.User.email == token_data.username).first()
