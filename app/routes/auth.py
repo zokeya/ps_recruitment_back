@@ -15,7 +15,7 @@ class TokenResponse(BaseModel):
     token_type: str
 
 
-@router.post("/signup", response_model=schemas.UserCreate)
+@router.post("/signup", response_model=schemas.Token)
 def create_user(
         user: schemas.UserCreate,
         db: Session = Depends(database.get_db)
@@ -23,7 +23,10 @@ def create_user(
     db_user = utils.get_user_by_email(db, email=user.email)
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
-    return utils.create_user(db=db, user=user)
+    new_user = utils.create_user(db=db, user=user)
+    access_token = oauth2.create_access_token(data={"username": new_user.email})
+
+    return {"access_token": access_token, "token_type": "bearer", "user": new_user}
 
 
 @router.post("/login/", response_model=schemas.Token)
@@ -51,8 +54,8 @@ def login(user_credentials: OAuth2PasswordRequestForm = Depends(), db: Session =
 
 @router.put("/forgot_pwd/", response_model=schemas.Message)
 def reset_password_request(
-    user_credentials: schemas.UsernameResetModel,
-    db: Session = Depends(database.get_db)
+        user_credentials: schemas.UsernameResetModel,
+        db: Session = Depends(database.get_db)
 ):
     # Check if the user with the specified email exists
     user = utils.get_user_by_email(db, email=user_credentials.username)
@@ -76,9 +79,9 @@ def reset_password_request(
 
 @router.put("/reset-password/", response_model=schemas.Token)
 def reset_password(
-    reset_token: str,
-    new_password: str,
-    db: Session = Depends(database.get_db)
+        reset_token: str,
+        new_password: str,
+        db: Session = Depends(database.get_db)
 ):
     user = utils.get_user_by_reset_token(db, reset_token)
     if not user:
