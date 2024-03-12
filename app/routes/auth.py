@@ -29,7 +29,7 @@ def create_user(
     return {"access_token": access_token, "token_type": "bearer", "user": new_user}
 
 
-@router.post("/login/", response_model=schemas.Token)
+@router.post("/login", response_model=schemas.Token)
 def login(user_credentials: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(database.get_db)):
     user = utils.get_user_by_email(db, user_credentials.username)
 
@@ -49,7 +49,7 @@ def login(user_credentials: OAuth2PasswordRequestForm = Depends(), db: Session =
     # access_token = oauth2.create_access_token(data={"user_id" : user.id})
     access_token = oauth2.create_access_token(data={"username": user.email})
 
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {"access_token": access_token, "token_type": "bearer", "user":user}
 
 
 @router.put("/forgot_pwd/", response_model=schemas.Message)
@@ -99,4 +99,4 @@ def reset_password(
     # Generate a new access token for the user
     access_token = oauth2.create_access_token(data={"username": user.email})
 
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {"access_token": access_token, "token_type": "bearer", "user": user}

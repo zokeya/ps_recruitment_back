@@ -55,7 +55,7 @@ class UserLogin(BaseModel):
         return value
 
     @validator("password")
-    def validate_password(self, value):
+    def validate_password(cls, value):
         if not value:
             raise ValueError("Password cannot be empty")
         return value
