@@ -49,7 +49,7 @@ def login(user_credentials: OAuth2PasswordRequestForm = Depends(), db: Session =
     # access_token = oauth2.create_access_token(data={"user_id" : user.id})
     access_token = oauth2.create_access_token(data={"username": user.email})
 
-    return {"access_token": access_token, "token_type": "bearer", "user":user}
+    return {"access_token": access_token, "token_type": "bearer", "user": user}
 
 
 @router.put("/forgot_pwd/", response_model=schemas.Message)
@@ -100,3 +100,8 @@ def reset_password(
     access_token = oauth2.create_access_token(data={"username": user.email})
 
     return {"access_token": access_token, "token_type": "bearer", "user": user}
+
+
+@router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
+async def logout_user(token: str = Depends(oauth2.oauth2_scheme)):
+    await oauth2.logout_user(token)
