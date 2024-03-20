@@ -1,5 +1,7 @@
-from pydantic import BaseModel,EmailStr, validator
-from typing import List
+from datetime import datetime
+
+from pydantic import BaseModel, EmailStr, validator
+from typing import List, Optional
 
 
 class TokenData(BaseModel):
@@ -7,10 +9,25 @@ class TokenData(BaseModel):
     useremail: str | None = None
 
 
-class UserCreate(BaseModel):
+class UserLogin(BaseModel):
     email: EmailStr
-    name: str
     password: str
+
+    @validator("email")
+    def validate_email(cls, value):
+        if not value:
+            raise ValueError("Email cannot be empty")
+        return value
+
+    @validator("password")
+    def validate_password(cls, value):
+        if not value:
+            raise ValueError("Password cannot be empty")
+        return value
+
+
+class UserCreate(UserLogin):
+    name: str
     user_role_id: int
 
     @validator("email")
@@ -42,23 +59,6 @@ class Token(BaseModel):
     access_token: str
     token_type: str
     user: UserCreate
-
-
-class UserLogin(BaseModel):
-    email: EmailStr
-    password: str
-
-    @validator("email")
-    def validate_email(cls, value):
-        if not value:
-            raise ValueError("Email cannot be empty")
-        return value
-
-    @validator("password")
-    def validate_password(cls, value):
-        if not value:
-            raise ValueError("Password cannot be empty")
-        return value
 
 
 class UserLoginResetModel(BaseModel):
@@ -100,3 +100,30 @@ class Offer(BaseModel):
     description: str | None = None
     price: float
     items: list[ItemCreate] | None = None
+
+
+class Qualification(BaseModel):
+    qualification_type: str
+    qualification_name: str
+    institution: str
+    completion_date: datetime
+
+
+class Skill(BaseModel):
+    skill_name: str
+    experience_years: int
+    proficiency_level: str
+
+
+class ApplicantBase(BaseModel):
+    first_name: str
+    other_names: str
+    phone_number: str
+    address: str
+    qualifications: Optional[List[Qualification]] = None
+    skills: Optional[List[Skill]] = None
+
+
+class Applicant(ApplicantBase):
+    user: UserLogin
+

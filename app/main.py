@@ -6,8 +6,7 @@ import uvicorn
 from app.database import engine, get_db
 from app import models
 from app.utils import get_items, create_item
-from app.routes import item, auth
-
+from app.routes import item, auth, applicant
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -25,6 +24,7 @@ app.add_middleware(
 
 app.include_router(auth.router, tags=["Auth"])
 app.include_router(item.router, tags=["Item"])
+app.include_router(applicant.router, tags=["Applicant"])
 
 
 
